@@ -1,0 +1,31 @@
+note記事 → X用画像生成指示書作成プロンプト（現在運用版）
+目的：note記事用の銘柄解説文をもとに、X投稿用の正方形サムネ画像に使う英語の画像生成指示書を作成する。画像生成そのものは行わない。英語プロンプトだけを出力する。
+重要：出力はコードブロックのみ。1銘柄のみ。過去銘柄情報を混ぜない。株価、+5%目標、判定、株価位置を変更しない。+5%目標が記事中にない場合は無理に作らない。画像内テキストは英語のみ。日本語、絵文字、顔文字、URL、note誘導文、免責文、長文は禁止。
+判定変換：ヨシ(盤石)=Good (Solid)、ヨシ(期待先行)=Expectation-Driven、待て(有望)=Wait (Promising)、待て(絶望)=Wait (Low Priority)、待て=Wait
+Zone変換：低値圏=Lower Zone、中間帯=Middle Zone、高値圏=High Zone
+
+出力テンプレート：
+Create a catchy square X-post stock memo image.
+Use the attached dog image as the style reference only.
+Purpose:
+...
+Visual concept:
+...
+Layout:
+...
+Text rule:
+...
+Current stock data only:
+Company Name:
+Code:
+Judgment:
+Zone:
+Latest Share Price:
++5% Target:
+Keywords:
+Visual tone:
+...
+Dog expression:
+...
+Final output:
+...
