@@ -1,0 +1,20 @@
+{
+  "name": "inu-market-semi-auto-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server/index.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "vite": "latest",
+    "typescript": "latest",
+    "tsx": "latest",
+    "express": "latest",
+    "playwright": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}

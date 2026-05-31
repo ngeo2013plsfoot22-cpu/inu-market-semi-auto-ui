@@ -1,0 +1,29 @@
+海外投資家向け・日本株Xポスト生成プロンプト
+買い目判定v3対応版 / Local Japan Insight 強化・待て2分類対応版
+
+目的：買い目判定v3の3行結果をもとに、海外投資家向けの英語Xポストを作成する。
+判定変換：ヨシ(盤石)=Good (Solid)、ヨシ(期待先行)=Expectation-Driven、待て(有望)=Wait (Promising)、待て(絶望)=Wait (Low Priority)
+Zone変換：低値圏=Lower Zone、中間帯=Middle Zone、高値圏=High Zone
+重要：判定・株価・52週レンジ位置・前日比・前日比率を変更しない。Buy now/Strong Buy/You should buy禁止。Not financial adviceで締めない。URL禁止。
+
+出力形式：
+🐶 Japan Stock Watch
+[Company Name] ([Code])
+Signal: [Converted Signal]
+[会社概要]
+Current setup:
+Price: ¥[price]
+Zone: [Zone]
+Move: [daily change]
+[株価位置と判定の関係]
+What I’m watching:
+□ [Point 1]
+□ [Point 2]
+□ [Point 3]
+Local Japan insight:
+[海外投資家が見落としやすい日本独自の文脈]
+My view:
+Short term: ...
+Mid term: ...
+Long term: ...
+[自然な問いかけ、または余韻]

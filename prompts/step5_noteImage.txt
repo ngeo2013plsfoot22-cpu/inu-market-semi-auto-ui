@@ -1,0 +1,24 @@
+イヌ式市場・note記事 → noteヘッダー画像生成指示書プロンプト 完成版
+目的：note記事形式の日本株解説文をもとに、note用ヘッダー画像を生成するための英語プロンプトを作成する。画像生成そのものは行わない。
+重要：1銘柄のみ、1280×670 px、noteヘッダー向け横長、黒板風、投資メモ風、英語のみ、可愛い犬キャラクター入り。過去銘柄情報を混ぜない。数値・判定を変更しない。画像内テキストに日本語禁止。
+判定変換：ヨシ(盤石)=Good (Solid)、ヨシ(期待先行)=Expectation-Driven、待て(有望)=Wait (Promising)、待て(絶望)=Wait (Low Priority)
+Zone変換：低値圏=Lower Zone、中間帯=Middle Zone、高値圏=High-Price Zone
+
+出力フォーマット：
+Create a finished 1280×670 px horizontal chalkboard-style stock analysis header.
+RESET AND DATA INTEGRITY:
+This is a new image. Ignore all previous stock names, codes, prices, chart labels, keywords, judgments, and scenario numbers. Use only the current stock data listed below.
+STYLE REFERENCE: deep green chalkboard, warm wooden frame, top-center title, upper-left info block, lower-left chart, right-side keyword list, upper-right judgment ellipse, bottom summary block, bottom scenario line, cute dog on the far right.
+DOG REFERENCE: white round face, black droopy ears, simple black line art, light pink cheeks, tiny black nose, soft rounded body, gentle kawaii style. No necktie. No glasses.
+CURRENT STOCK DATA ONLY:
+Title: [Company Name]
+Code: [Code]
+Judgment: [Converted Judgment]
+Latest Share Price: [Price] yen
+52-Week Range: [Low] - [High] yen
+Zone: [Zone]
+Chart Label: [Short English Label]
+Keywords: [Keyword 1] [Keyword 2] [Keyword 3] [Keyword 4]
+Bottom Summary: [Short Summary]
+Scenario Line: +5%: [Price] yen / +10%: [Price] yen
+TEXT RULE: English only. Short, large, readable chalk-style text. No Japanese, no emoji, no kaomoji, no paragraphs.
