@@ -58,6 +58,7 @@ async function openPage(settings: Settings) {
     await fs.mkdir(userDataDir, { recursive: true });
     context = await chromium.launchPersistentContext(userDataDir, {
       ...(browserMode === 'chrome' ? { channel: 'chrome' as const } : {}),
+      chromiumSandbox: true,
       headless: false,
       viewport: { width: 1280, height: 900 }
     });
