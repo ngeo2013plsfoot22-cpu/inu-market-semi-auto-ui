@@ -10,7 +10,7 @@ export function validateCommand(command: string): { ok: boolean; warning?: strin
   return { ok: true };
 }
 
-export function parseJudgmentText(text: string, source: 'manual'|'runner' = 'manual'): { stocks: StockItem[]; logs: LogItem[] } {
+export function parseJudgmentText(text: string, source: 'manual'|'imported' = 'manual'): { stocks: StockItem[]; logs: LogItem[] } {
   const logs: LogItem[] = [];
   const now = new Date().toISOString();
   const blocks = text.replace(/\r\n/g, '\n').split(/\n\s*\n/g).map((b) => b.trim()).filter(Boolean);

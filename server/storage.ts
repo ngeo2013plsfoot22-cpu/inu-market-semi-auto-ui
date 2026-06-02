@@ -40,21 +40,17 @@ export async function getBatches(): Promise<Batch[]> { return readJson<Batch[]>(
 export async function saveBatches(batches: Batch[]) { await writeJsonAtomic(files.batches, batches); }
 export async function getBatch(batchId: string) { return (await getBatches()).find((b) => b.batchId === batchId); }
 export async function upsertBatch(batch: Batch) { const batches = await getBatches(); const idx = batches.findIndex((b) => b.batchId === batch.batchId); if (idx >= 0) batches[idx] = batch; else batches.unshift(batch); await saveBatches(batches); }
-function normalizeSettings(settings: Settings): Settings {
-  const runner = { ...defaultSettings.runner, ...settings.runner };
-  if ((runner.browserMode as string) === 'chrome' || (runner.browserMode as string) === 'chromium') runner.browserMode = 'chromePersistent';
-  if (runner.browserMode !== 'connectExistingChrome') runner.browserMode = 'chromePersistent';
+function normalizeSettings(settings: Partial<Settings> & Record<string, unknown>): Settings {
   return {
     ...defaultSettings,
     ...settings,
-    projectUrlsByStep: { ...defaultSettings.projectUrlsByStep, ...settings.projectUrlsByStep },
-    projectNamesByStep: { ...defaultSettings.projectNamesByStep, ...settings.projectNamesByStep },
-    runner
+    projectUrlsByStep: { ...defaultSettings.projectUrlsByStep, ...(settings.projectUrlsByStep ?? {}) },
+    projectNamesByStep: { ...defaultSettings.projectNamesByStep, ...(settings.projectNamesByStep ?? {}) }
   };
 }
 
 export async function getSettings(): Promise<Settings> { return normalizeSettings(await readJson<Settings>(files.settings, defaultSettings)); }
-export async function saveSettings(settings: Settings) { await writeJsonAtomic(files.settings, normalizeSettings(settings)); }
+export async function saveSettings(settings: Partial<Settings> & Record<string, unknown>) { await writeJsonAtomic(files.settings, normalizeSettings(settings)); }
 export async function getTemplates(): Promise<PromptTemplates> { return { ...defaultPrompts, ...(await readJson<PromptTemplates>(files.templates, defaultPrompts)) }; }
 export async function saveTemplates(templates: PromptTemplates) { await writeJsonAtomic(files.templates, templates); await writePromptFiles(templates, true); }
-export async function importData(payload: { batches?: Batch[]; settings?: Settings; templates?: PromptTemplates }) { if (payload.batches) await saveBatches(payload.batches); if (payload.settings) await saveSettings(payload.settings); if (payload.templates) await saveTemplates(payload.templates); }
+export async function importData(payload: { batches?: Batch[]; settings?: Settings; templates?: PromptTemplates }) { if (payload.batches) await saveBatches(payload.batches); if (payload.settings) await saveSettings(payload.settings as Partial<Settings> & Record<string, unknown>); if (payload.templates) await saveTemplates(payload.templates); }

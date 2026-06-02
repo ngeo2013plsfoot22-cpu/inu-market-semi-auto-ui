@@ -17,13 +17,5 @@
     "step4": "イヌ式市場|X日本語ポスト作成",
     "step5": "イヌ式市場|note画像指示書",
     "step6": "イヌ式市場|X画像指示書"
-  },
-  "runner": {
-    "headless": false,
-    "timeoutMs": 180000,
-    "stopOnError": true,
-    "sendMode": "twoStep",
-    "newChatPerStep": true,
-    "browserMode": "chromePersistent"
   }
 }

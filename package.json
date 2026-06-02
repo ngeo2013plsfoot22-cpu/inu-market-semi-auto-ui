@@ -13,7 +13,6 @@
     "typescript": "latest",
     "tsx": "latest",
     "express": "latest",
-    "playwright": "latest",
     "react": "latest",
     "react-dom": "latest"
   }
