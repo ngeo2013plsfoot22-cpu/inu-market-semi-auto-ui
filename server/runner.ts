@@ -22,7 +22,7 @@ export function resolveProjectUrl(settings: Settings, step: StepKey) {
 export async function runTwoStepBatch(params: { step: StepKey; inputs: Array<{ label: string; text: string }>; initializationMessage: string; settings: Settings; log: LogFn; }) {
   const { step, inputs, initializationMessage, settings, log } = params;
   const projectUrl = resolveProjectUrl(settings, step);
-  const page = await openPage(settings);
+  const page = await openPage(settings, log);
   page.setDefaultTimeout(settings.runner.timeoutMs);
   log('info', `${stepLabel(step)}プロジェクトURLを開きました`);
   await page.goto(projectUrl, { waitUntil: 'domcontentloaded', timeout: settings.runner.timeoutMs });
@@ -44,25 +44,33 @@ export async function runTwoStepBatch(params: { step: StepKey; inputs: Array<{ l
   return outputs;
 }
 
-async function openPage(settings: Settings) {
+async function openPage(settings: Settings, log: LogFn) {
   const browserMode = normalizeBrowserMode(settings.runner.browserMode);
   const userDataDir = playwrightChromeProfileDir;
-  const nextContextKey = browserMode === 'connectExistingChrome' ? browserMode : `${browserMode}:${userDataDir}`;
+  const nextContextKey = browserMode === 'chromePersistent' ? `${browserMode}:${userDataDir}` : browserMode;
+
+  log('info', `Browser mode: ${browserMode}`);
 
   if (context && contextKey !== nextContextKey) {
-    if (contextKey?.startsWith('chromePersistent')) await context.close().catch(() => undefined);
-    browser = undefined;
-    context = undefined;
-    contextKey = undefined;
+    await closeManagedBrowserContext();
   }
 
   if (!context) {
     if (browserMode === 'connectExistingChrome') {
+      log('info', 'Connecting to existing Chrome at http://127.0.0.1:9222');
       browser = await chromium.connectOverCDP('http://127.0.0.1:9222').catch((error) => {
-        throw new Error(`手動起動したChromeへ接続できませんでした。すべてのChromeを終了してから remote-debugging-port=9222 付きで起動し、設定画面で browserMode を connectExistingChrome にしてください。詳細: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`既存Chromeへ接続できません。
+先にすべてのChromeを終了し、以下のコマンドでChromeを起動してください。
+
+open -na "Google Chrome" --args --remote-debugging-port=9222
+
+そのChromeでChatGPTにログインした後、再度実行してください。
+
+詳細: ${error instanceof Error ? error.message : String(error)}`);
       });
       context = browser.contexts()[0] ?? await browser.newContext();
-    } else {
+    } else if (browserMode === 'chromePersistent') {
+      log('info', `Launching Google Chrome with persistent Playwright profile: ${userDataDir}`);
       await fs.mkdir(userDataDir, { recursive: true });
       context = await chromium.launchPersistentContext(userDataDir, {
         channel: 'chrome',
@@ -70,15 +78,35 @@ async function openPage(settings: Settings) {
         headless: false,
         viewport: { width: 1280, height: 900 }
       });
+    } else {
+      log('info', 'Launching bundled Playwright Chromium');
+      browser = await chromium.launch({
+        chromiumSandbox: true,
+        headless: settings.runner.headless
+      });
+      context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     }
     contextKey = nextContextKey;
   }
   return context.pages()[0] ?? await context.newPage();
 }
 
-function normalizeBrowserMode(browserMode: Settings['runner']['browserMode'] | 'chrome' | 'chromium' | undefined) {
-  if (browserMode === 'connectExistingChrome') return browserMode;
-  return 'chromePersistent';
+async function closeManagedBrowserContext() {
+  if (contextKey === 'connectExistingChrome') {
+    // Do not close the user's manually launched Chrome; just drop Playwright's references.
+  } else if (contextKey?.startsWith('chromePersistent')) {
+    await context?.close().catch(() => undefined);
+  } else {
+    await browser?.close().catch(() => undefined);
+  }
+  browser = undefined;
+  context = undefined;
+  contextKey = undefined;
+}
+
+function normalizeBrowserMode(browserMode: Settings['runner']['browserMode'] | 'chrome' | undefined) {
+  if (browserMode === 'chromePersistent' || browserMode === 'chromium') return browserMode;
+  return 'connectExistingChrome';
 }
 
 async function ensureLoggedIn(page: Page) {

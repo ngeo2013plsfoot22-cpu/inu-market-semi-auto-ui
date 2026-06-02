@@ -56,11 +56,13 @@ function SettingsView({ settings, setSettings }: { settings:Settings; setSetting
       <input value={draft.projectUrlsByStep[k]} onChange={e=>setDraft({...draft,projectUrlsByStep:{...draft.projectUrlsByStep,[k]:e.target.value}})}/>
     </div>)}
     <label>browserMode</label>
-    <select value={draft.runner.browserMode ?? 'chromePersistent'} onChange={e=>setDraft({...draft,runner:{...draft.runner,browserMode:e.target.value as Settings['runner']['browserMode']}})}>
+    <select value={draft.runner.browserMode ?? 'connectExistingChrome'} onChange={e=>setDraft({...draft,runner:{...draft.runner,browserMode:e.target.value as Settings['runner']['browserMode']}})}>
+      <option value="connectExistingChrome">connectExistingChrome（ログイン済みChromeへ接続・推奨）</option>
       <option value="chromePersistent">chromePersistent（専用Chromeプロファイル）</option>
-      <option value="connectExistingChrome">connectExistingChrome（手動起動Chromeへ接続）</option>
+      <option value="chromium">chromium（Playwright同梱Chromium）</option>
     </select>
-    <p className="hint">chromePersistentは通常のGoogle Chrome本体を専用プロファイル data/playwright-chrome-profile で起動します。Googleログインで拒否される場合は、普段ログイン済みのChromeをリモートデバッグ付きで手動起動して connectExistingChrome を選んでください。</p>
+    <p className="hint">connectExistingChrome：すでにログイン済みのGoogle Chromeへ接続します。Googleログインが自動起動Chromeで拒否される場合に推奨します。事前にChromeを remote-debugging-port=9222 付きで手動起動してください。</p>
+    <p className="hint">chromePersistentは通常のGoogle Chrome本体を専用プロファイル data/playwright-chrome-profile で起動します。chromiumはPlaywright同梱Chromiumを起動します。Googleログインが拒否される場合は connectExistingChrome を使ってください。</p>
     <label>timeoutMs</label>
     <input type="number" value={draft.runner.timeoutMs} onChange={e=>setDraft({...draft,runner:{...draft.runner,timeoutMs:Number(e.target.value)}})}/>
     <label><input type="checkbox" checked={draft.runner.headless} onChange={e=>setDraft({...draft,runner:{...draft.runner,headless:e.target.checked}})}/> headless（ChatGPTログイン保持のためランナー起動時は常にfalse）</label>

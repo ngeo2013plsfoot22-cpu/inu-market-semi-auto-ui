@@ -3,7 +3,7 @@ export type StepNumber = 0|1|2|3|4|5|6;
 export type BatchStatus = 'draft'|'running'|'partial'|'done'|'error';
 export type Step0Status = 'pending'|'done'|'error'|'manual';
 export type StepStatus = 'pending'|'running'|'done'|'error';
-export type BrowserMode = 'chromePersistent'|'connectExistingChrome';
+export type BrowserMode = 'connectExistingChrome'|'chromePersistent'|'chromium';
 
 export type LogItem = { time: string; level: 'info'|'warn'|'error'; message: string };
 export type StatusByStep = { step0: Step0Status; step1: StepStatus; step2: StepStatus; step3: StepStatus; step4: StepStatus; step5: StepStatus; step6: StepStatus };
