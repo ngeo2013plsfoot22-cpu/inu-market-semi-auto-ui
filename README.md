@@ -32,6 +32,8 @@ PC側のPlaywrightブラウザでChatGPTログインが必要です。設定画�
 
 Playwrightランナーはデフォルトで `browserMode: chrome` を使い、Playwright同梱の Chrome Testing / bundled Chromium ではなく、通常のGoogle Chrome本体を `channel: "chrome"` で起動します。ログイン状態はPlaywright専用の永続プロファイル `data/playwright-chrome-profile` に保存されます。普段使っているChromeのDefaultプロファイルは直接使いません。
 
+ChatGPTログイン時にChrome上部へ「サポートされていないコマンドライン フラグ --no-sandbox を使用しています」と表示される場合、ログインやCloudflare認証が失敗しやすくなります。このアプリでは通常のGoogle Chrome + Playwright専用プロファイルを使い、`--no-sandbox` を付けずに起動します。
+
 初回だけ次の手順でログインしてください。
 
 1. PCで `npm run dev` を起動します。
