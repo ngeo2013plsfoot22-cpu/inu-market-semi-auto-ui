@@ -24,6 +24,6 @@
     "stopOnError": true,
     "sendMode": "twoStep",
     "newChatPerStep": true,
-    "browserMode": "chrome"
+    "browserMode": "chromePersistent"
   }
 }

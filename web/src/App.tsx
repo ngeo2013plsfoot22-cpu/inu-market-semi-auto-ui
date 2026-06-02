@@ -44,7 +44,31 @@ function StockCard({ batchId, stock, setBatch, runStep }: { batchId:string; stoc
   async function copy() { await navigator.clipboard.writeText(value); setCopied('コピーしました'); setTimeout(()=>setCopied(''),1200); }
   return <article className="stock"><h3>{stock.name} <span>{stock.code}</span></h3><p>{stock.priceLine}</p><p>{stock.judgment}</p><div className="badges">{stepKeys.map(k=><span key={k} className={stock.statusByStep[k]}>{stepNames[k]}:{stock.statusByStep[k]}</span>)}</div><div className="tabs">{fieldByTab.map((t,i)=><button className={i===tab?'selected':''} key={t[0]} onClick={()=>setTab(i)}>{t[0]}</button>)}</div><textarea value={value} onChange={e=>setDraft({...draft,[field]:e.target.value})}/><div className="actions"><button onClick={copy}>コピー</button><button onClick={()=>save()}>保存</button>{step!=='step0' && <button onClick={()=>runStep(Number(step.replace('step','')), stock.stockId, true)}>再生成</button>}<button onClick={()=>{setDraft({...draft,[field]:''}); save('');}}>クリア</button>{copied && <span>{copied}</span>}</div>{stock.errorByStep[step] && <p className="error">{stock.errorByStep[step]}</p>}</article>
 }
-function SettingsView({ settings, setSettings }: { settings:Settings; setSettings:(s:Settings)=>void }) { const [draft,setDraft]=useState(settings); async function save(){setSettings(await api.saveSettings(draft)); alert('設定を保存しました');} return <section className="card"><h2>設定</h2><label>defaultProjectUrl</label><input value={draft.defaultProjectUrl} onChange={e=>setDraft({...draft,defaultProjectUrl:e.target.value})}/>{stepKeys.map(k=><div key={k}><label>{k}：{draft.projectNamesByStep[k]}</label><input value={draft.projectUrlsByStep[k]} onChange={e=>setDraft({...draft,projectUrlsByStep:{...draft.projectUrlsByStep,[k]:e.target.value}})}/></div>)}<label>browserMode</label><select value={draft.runner.browserMode ?? 'chrome'} onChange={e=>setDraft({...draft,runner:{...draft.runner,browserMode:e.target.value as 'chrome'|'chromium'}})}><option value="chrome">chrome（通常のGoogle Chrome）</option><option value="chromium">chromium（Playwright同梱）</option></select><p className="hint">chromeでは通常のGoogle Chrome本体を起動し、専用プロファイル data/playwright-chrome-profile にChatGPTログイン状態を保存します。普段使いのDefaultプロファイルは直接使いません。</p><label>timeoutMs</label><input type="number" value={draft.runner.timeoutMs} onChange={e=>setDraft({...draft,runner:{...draft.runner,timeoutMs:Number(e.target.value)}})}/><label><input type="checkbox" checked={draft.runner.headless} onChange={e=>setDraft({...draft,runner:{...draft.runner,headless:e.target.checked}})}/> headless（ChatGPTログイン保持のためランナー起動時は常にfalse）</label><p>sendMode: twoStep / newChatPerStep: true</p><button onClick={save}>設定を保存</button><ExportImport /></section> }
+function SettingsView({ settings, setSettings }: { settings:Settings; setSettings:(s:Settings)=>void }) {
+  const [draft,setDraft]=useState(settings);
+  async function save(){setSettings(await api.saveSettings(draft)); alert('設定を保存しました');}
+  return <section className="card">
+    <h2>設定</h2>
+    <label>defaultProjectUrl</label>
+    <input value={draft.defaultProjectUrl} onChange={e=>setDraft({...draft,defaultProjectUrl:e.target.value})}/>
+    {stepKeys.map(k=><div key={k}>
+      <label>{k}：{draft.projectNamesByStep[k]}</label>
+      <input value={draft.projectUrlsByStep[k]} onChange={e=>setDraft({...draft,projectUrlsByStep:{...draft.projectUrlsByStep,[k]:e.target.value}})}/>
+    </div>)}
+    <label>browserMode</label>
+    <select value={draft.runner.browserMode ?? 'chromePersistent'} onChange={e=>setDraft({...draft,runner:{...draft.runner,browserMode:e.target.value as Settings['runner']['browserMode']}})}>
+      <option value="chromePersistent">chromePersistent（専用Chromeプロファイル）</option>
+      <option value="connectExistingChrome">connectExistingChrome（手動起動Chromeへ接続）</option>
+    </select>
+    <p className="hint">chromePersistentは通常のGoogle Chrome本体を専用プロファイル data/playwright-chrome-profile で起動します。Googleログインで拒否される場合は、普段ログイン済みのChromeをリモートデバッグ付きで手動起動して connectExistingChrome を選んでください。</p>
+    <label>timeoutMs</label>
+    <input type="number" value={draft.runner.timeoutMs} onChange={e=>setDraft({...draft,runner:{...draft.runner,timeoutMs:Number(e.target.value)}})}/>
+    <label><input type="checkbox" checked={draft.runner.headless} onChange={e=>setDraft({...draft,runner:{...draft.runner,headless:e.target.checked}})}/> headless（ChatGPTログイン保持のためランナー起動時は常にfalse）</label>
+    <p>sendMode: twoStep / newChatPerStep: true</p>
+    <button onClick={save}>設定を保存</button>
+    <ExportImport />
+  </section>
+}
 function TemplatesView({ templates, setTemplates }: { templates:Templates; setTemplates:(t:Templates)=>void }) { const [draft,setDraft]=useState(templates); async function save(){setTemplates(await api.saveTemplates(draft)); alert('プロンプトを保存しました。次回実行から新規チャットで反映されます。');} return <section className="card"><h2>プロンプトテンプレート編集</h2>{Object.keys(draft).map(k=><div key={k}><label>{k}</label><textarea className="prompt" value={(draft as any)[k]} onChange={e=>setDraft({...draft,[k]:e.target.value})}/></div>)}<button onClick={save}>プロンプトを保存</button><ExportImport /></section> }
 function ExportImport(){ const [text,setText]=useState(''); async function exp(kind:string){setText(JSON.stringify(await api.export(kind),null,2));} async function imp(){await api.import(JSON.parse(text)); alert('インポートしました');} return <div><h3>エクスポート/インポート</h3><div className="grid"><button onClick={()=>exp('all')}>全体JSONエクスポート</button><button onClick={()=>exp('batches')}>バッチJSON</button><button onClick={()=>exp('settings')}>設定JSON</button><button onClick={()=>exp('templates')}>プロンプトJSON</button></div><textarea value={text} onChange={e=>setText(e.target.value)} placeholder="インポートするJSON、またはエクスポート結果"/><button onClick={imp}>JSONインポート</button></div>}
 function Logs({ batch }: { batch:Batch }) { return <section className="card" id="logs"><h2>実行ログ</h2>{batch.logs.map((l,i)=><p key={i} className={l.level}>[{new Date(l.time).toLocaleTimeString()}] {l.message}</p>)}</section> }
