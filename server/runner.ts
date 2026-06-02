@@ -1,9 +1,10 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { chromium, type BrowserContext, type Page } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import type { Settings, StepKey } from './types.js';
 
 type LogFn = (level: 'info'|'warn'|'error', message: string) => void;
+let browser: Browser | undefined;
 let context: BrowserContext | undefined;
 let contextKey: string | undefined;
 
@@ -44,32 +45,45 @@ export async function runTwoStepBatch(params: { step: StepKey; inputs: Array<{ l
 }
 
 async function openPage(settings: Settings) {
-  const browserMode = settings.runner.browserMode ?? 'chrome';
+  const browserMode = normalizeBrowserMode(settings.runner.browserMode);
   const userDataDir = playwrightChromeProfileDir;
-  const nextContextKey = `${browserMode}:${userDataDir}`;
+  const nextContextKey = browserMode === 'connectExistingChrome' ? browserMode : `${browserMode}:${userDataDir}`;
 
   if (context && contextKey !== nextContextKey) {
-    await context.close().catch(() => undefined);
+    if (contextKey?.startsWith('chromePersistent')) await context.close().catch(() => undefined);
+    browser = undefined;
     context = undefined;
     contextKey = undefined;
   }
 
   if (!context) {
-    await fs.mkdir(userDataDir, { recursive: true });
-    context = await chromium.launchPersistentContext(userDataDir, {
-      ...(browserMode === 'chrome' ? { channel: 'chrome' as const } : {}),
-      chromiumSandbox: true,
-      headless: false,
-      viewport: { width: 1280, height: 900 }
-    });
+    if (browserMode === 'connectExistingChrome') {
+      browser = await chromium.connectOverCDP('http://127.0.0.1:9222').catch((error) => {
+        throw new Error(`手動起動したChromeへ接続できませんでした。すべてのChromeを終了してから remote-debugging-port=9222 付きで起動し、設定画面で browserMode を connectExistingChrome にしてください。詳細: ${error instanceof Error ? error.message : String(error)}`);
+      });
+      context = browser.contexts()[0] ?? await browser.newContext();
+    } else {
+      await fs.mkdir(userDataDir, { recursive: true });
+      context = await chromium.launchPersistentContext(userDataDir, {
+        channel: 'chrome',
+        chromiumSandbox: true,
+        headless: false,
+        viewport: { width: 1280, height: 900 }
+      });
+    }
     contextKey = nextContextKey;
   }
   return context.pages()[0] ?? await context.newPage();
 }
 
+function normalizeBrowserMode(browserMode: Settings['runner']['browserMode'] | 'chrome' | 'chromium' | undefined) {
+  if (browserMode === 'connectExistingChrome') return browserMode;
+  return 'chromePersistent';
+}
+
 async function ensureLoggedIn(page: Page) {
   const login = page.getByRole('button', { name: /log in|ログイン/i }).first();
-  if (await login.isVisible().catch(() => false)) throw new Error('ChatGPTにログインしていません。Playwright専用ChromeでChatGPTへ初回ログインしてください。ログイン状態は data/playwright-chrome-profile に保存されます。');
+  if (await login.isVisible().catch(() => false)) throw new Error('ChatGPTにログインしていません。Googleログインで拒否される場合は、READMEの手順でChromeを手動起動してChatGPTへログインし、設定画面で browserMode を connectExistingChrome にしてください。');
 }
 
 async function startNewChat(page: Page, log: LogFn, step: StepKey) {
