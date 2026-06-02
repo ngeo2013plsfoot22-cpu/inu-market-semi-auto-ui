@@ -1,9 +1,13 @@
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import type { Settings, StepKey } from './types.js';
 
 type LogFn = (level: 'info'|'warn'|'error', message: string) => void;
 let context: BrowserContext | undefined;
+let contextKey: string | undefined;
+
+const playwrightChromeProfileDir = path.join(process.cwd(), 'data', 'playwright-chrome-profile');
 
 export function resolveProjectUrl(settings: Settings, step: StepKey) {
   const url = settings.projectUrlsByStep[step] || settings.defaultProjectUrl;
@@ -40,16 +44,31 @@ export async function runTwoStepBatch(params: { step: StepKey; inputs: Array<{ l
 }
 
 async function openPage(settings: Settings) {
+  const browserMode = settings.runner.browserMode ?? 'chrome';
+  const userDataDir = playwrightChromeProfileDir;
+  const nextContextKey = `${browserMode}:${userDataDir}`;
+
+  if (context && contextKey !== nextContextKey) {
+    await context.close().catch(() => undefined);
+    context = undefined;
+    contextKey = undefined;
+  }
+
   if (!context) {
-    const userDataDir = process.env.CHATGPT_USER_DATA_DIR || path.join(process.cwd(), '.chatgpt-profile');
-    context = await chromium.launchPersistentContext(userDataDir, { headless: settings.runner.headless, viewport: { width: 1280, height: 900 } });
+    await fs.mkdir(userDataDir, { recursive: true });
+    context = await chromium.launchPersistentContext(userDataDir, {
+      ...(browserMode === 'chrome' ? { channel: 'chrome' as const } : {}),
+      headless: false,
+      viewport: { width: 1280, height: 900 }
+    });
+    contextKey = nextContextKey;
   }
   return context.pages()[0] ?? await context.newPage();
 }
 
 async function ensureLoggedIn(page: Page) {
   const login = page.getByRole('button', { name: /log in|ログイン/i }).first();
-  if (await login.isVisible().catch(() => false)) throw new Error('ChatGPTにログインしていません。PC側ブラウザでログインしてください。');
+  if (await login.isVisible().catch(() => false)) throw new Error('ChatGPTにログインしていません。Playwright専用ChromeでChatGPTへ初回ログインしてください。ログイン状態は data/playwright-chrome-profile に保存されます。');
 }
 
 async function startNewChat(page: Page, log: LogFn, step: StepKey) {

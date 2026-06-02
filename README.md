@@ -28,6 +28,20 @@ http://192.168.x.x:5173
 
 PC側のPlaywrightブラウザでChatGPTログインが必要です。設定画面で工程別のChatGPTプロジェクトURLを登録してください。工程別URLが空の場合は `defaultProjectUrl` を使います。どちらも空なら実行時にエラーになります。
 
+### 専用Chromeプロファイルでの初回ログイン
+
+Playwrightランナーはデフォルトで `browserMode: chrome` を使い、Playwright同梱の Chrome Testing / bundled Chromium ではなく、通常のGoogle Chrome本体を `channel: "chrome"` で起動します。ログイン状態はPlaywright専用の永続プロファイル `data/playwright-chrome-profile` に保存されます。普段使っているChromeのDefaultプロファイルは直接使いません。
+
+初回だけ次の手順でログインしてください。
+
+1. PCで `npm run dev` を起動します。
+2. 設定画面を開き、`browserMode` が `chrome（通常のGoogle Chrome）` になっていることを確認します。必要に応じて `chromium（Playwright同梱）` へ変更できますが、ChatGPTログイン安定化の推奨は `chrome` です。
+3. 工程0〜6のいずれかを実行して、Playwright専用Chromeを起動します。
+4. 起動した専用Chrome上でChatGPTへ手動ログインします。
+5. ログイン完了後、同じ専用Chromeで工程を再実行します。
+
+2回目以降は `data/playwright-chrome-profile` に保存されたCookie/セッションが再利用されるため、通常は再ログイン不要です。Chromeが見つからない場合はGoogle Chrome本体をインストールするか、設定画面の `browserMode` を `chromium` に切り替えてください。
+
 | 工程 | プロジェクト名 |
 |---|---|
 | 工程0 | イヌ式市場\|買い目判定 |
