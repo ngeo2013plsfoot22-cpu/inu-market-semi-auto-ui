@@ -42,8 +42,8 @@ export async function getBatch(batchId: string) { return (await getBatches()).fi
 export async function upsertBatch(batch: Batch) { const batches = await getBatches(); const idx = batches.findIndex((b) => b.batchId === batch.batchId); if (idx >= 0) batches[idx] = batch; else batches.unshift(batch); await saveBatches(batches); }
 function normalizeSettings(settings: Settings): Settings {
   const runner = { ...defaultSettings.runner, ...settings.runner };
-  if ((runner.browserMode as string) === 'chrome' || (runner.browserMode as string) === 'chromium') runner.browserMode = 'chromePersistent';
-  if (runner.browserMode !== 'connectExistingChrome') runner.browserMode = 'chromePersistent';
+  if ((runner.browserMode as string) === 'chrome') runner.browserMode = 'chromePersistent';
+  if (!['connectExistingChrome', 'chromePersistent', 'chromium'].includes(runner.browserMode as string)) runner.browserMode = 'connectExistingChrome';
   return {
     ...defaultSettings,
     ...settings,

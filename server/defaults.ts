@@ -7,7 +7,7 @@ export const defaultSettings: Settings = {
     step0: 'イヌ式市場|買い目判定', step1: 'イヌ式市場|X記事作成', step2: 'イヌ式市場|X英語ポスト作成', step3: 'イヌ式市場|note記事作成',
     step4: 'イヌ式市場|X日本語ポスト作成', step5: 'イヌ式市場|note画像指示書', step6: 'イヌ式市場|X画像指示書'
   },
-  runner: { headless: false, timeoutMs: 180000, stopOnError: true, sendMode: 'twoStep', newChatPerStep: true, browserMode: 'chromePersistent' }
+  runner: { headless: false, timeoutMs: 180000, stopOnError: true, sendMode: 'twoStep', newChatPerStep: true, browserMode: 'connectExistingChrome' }
 };
 
 export const defaultPrompts: PromptTemplates = {

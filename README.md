@@ -30,44 +30,55 @@ PC側のPlaywrightブラウザでChatGPTログインが必要です。設定画�
 
 ### browserModeの選択肢
 
-設定画面の `browserMode` は次の2種類です。
+設定画面の `browserMode` は次の3種類です。デフォルト推奨は `connectExistingChrome` です。
 
-- `chromePersistent`: 通常のGoogle Chrome本体をPlaywright専用の永続プロファイル `data/playwright-chrome-profile` で起動します。普段使っているChromeのDefaultプロファイルは直接使いません。
-- `connectExistingChrome`: ユーザーが手動起動したChromeへ `chromium.connectOverCDP("http://127.0.0.1:9222")` で接続します。手動起動したChromeでChatGPTへログイン済みなら、そのログイン済みタブ/セッションを利用できます。
+- `connectExistingChrome`: ユーザーが手動起動したログイン済みGoogle Chromeへ `chromium.connectOverCDP("http://127.0.0.1:9222")` で接続します。Playwright側では新しいChromeを起動せず、専用プロファイルも作成しません。Googleログインが自動起動Chromeで拒否される場合に推奨します。
+- `chromePersistent`: 通常のGoogle Chrome本体をPlaywright専用の永続プロファイル `data/playwright-chrome-profile` で起動します。普段使っているChromeのDefaultプロファイルは直接使いません。Googleログイン時に「このブラウザまたはアプリは安全でない可能性があります」と表示される場合は `connectExistingChrome` を使ってください。
+- `chromium`: Playwright同梱のChromiumを新規起動します。Googleログインが拒否される場合は `connectExistingChrome` を使ってください。
 
-### 専用Chromeプロファイルでの初回ログイン
+### ChatGPTログイン済みChromeへ接続する手順（connectExistingChrome）
 
-Playwrightランナーはデフォルトで `browserMode: chromePersistent` を使い、Playwright同梱の Chrome Testing / bundled Chromium ではなく、通常のGoogle Chrome本体を `channel: "chrome"` で起動します。ログイン状態はPlaywright専用の永続プロファイル `data/playwright-chrome-profile` に保存されます。
+Googleログインで自動起動Chromeが拒否される場合は、新しいChromeへログインさせず、ユーザーが普段ChatGPTにログインできているGoogle Chromeをリモートデバッグポート付きで手動起動し、Playwrightを接続します。
+
+1. すべてのGoogle Chromeを終了する
+2. ターミナルで以下を実行する
+
+   ```bash
+   open -na "Google Chrome" --args --remote-debugging-port=9222
+   ```
+
+3. 起動したChromeでChatGPTを開く
+4. 普段どおりChatGPTにログインする
+5. 使用するChatGPTプロジェクトに入れることを確認する
+6. 半自動化UIを起動する
+7. 設定画面で `browserMode` を `connectExistingChrome` にする
+8. 工程を実行する
+
+接続確認用コマンド：
+
+```bash
+curl http://127.0.0.1:9222/json/version
+```
+
+このコマンドでJSONが返れば、半自動化UIから接続可能です。
+
+このモードではPlaywrightが `http://127.0.0.1:9222` に接続し、手動起動済みChromeの既存コンテキストとタブを優先して使います。`http://127.0.0.1:9222` に接続できない場合でも `chromePersistent` へ自動フォールバックせず、Chrome起動手順を示すエラーで停止します。
+
+### 専用Chromeプロファイルでの初回ログイン（chromePersistent）
+
+`browserMode: chromePersistent` は、Playwright同梱の Chrome Testing / bundled Chromium ではなく、通常のGoogle Chrome本体を `channel: "chrome"` で起動します。ログイン状態はPlaywright専用の永続プロファイル `data/playwright-chrome-profile` に保存されます。
 
 ChatGPTログイン時にChrome上部へ「サポートされていないコマンドライン フラグ --no-sandbox を使用しています」と表示される場合、ログインやCloudflare認証が失敗しやすくなります。このアプリでは通常のGoogle Chrome + Playwright専用プロファイルを使い、`--no-sandbox` を付けずに起動します。
 
-初回だけ次の手順でログインしてください。
+初回だけ次の手順でログインしてください。ただし、Googleログイン時に「このブラウザまたはアプリは安全でない可能性があります」と表示されて拒否される場合は、上記の `connectExistingChrome` を推奨します。
 
 1. PCで `npm run dev` を起動します。
-2. 設定画面を開き、`browserMode` が `chromePersistent（専用Chromeプロファイル）` になっていることを確認します。
+2. 設定画面を開き、`browserMode` を `chromePersistent（専用Chromeプロファイル）` にします。
 3. 工程0〜6のいずれかを実行して、Playwright専用Chromeを起動します。
 4. 起動した専用Chrome上でChatGPTへ手動ログインします。
 5. ログイン完了後、同じ専用Chromeで工程を再実行します。
 
-2回目以降は `data/playwright-chrome-profile` に保存されたCookie/セッションが再利用されるため、通常は再ログイン不要です。Chromeが見つからない場合はGoogle Chrome本体をインストールしてください。Googleログイン時に「このブラウザまたはアプリは安全でない可能性があります」と表示されて拒否される場合は、次の `connectExistingChrome` を推奨します。
-
-### MacでChromeを手動起動して接続する方法（connectExistingChrome）
-
-Googleログインで専用Chromeプロファイルが拒否される場合は、新規Chromeへログインさせず、ユーザーが手動起動したChromeへPlaywrightを接続します。
-
-1. すべてのChromeを終了します。
-2. ターミナルで以下を実行します。
-
-   ```bash
-   open -na "Google Chrome" --args --remote-debugging-port=9222 --user-data-dir="$HOME/chrome-chatgpt-automation"
-   ```
-
-3. 開いたChromeでChatGPTに手動ログインします。
-4. ログイン後、半自動化UIを起動します。
-5. 設定画面で `browserMode` を `connectExistingChrome` にします。
-6. 工程を実行します。
-
-このモードではPlaywrightが `http://127.0.0.1:9222` に接続し、手動起動済みChromeの既存コンテキストとタブを優先して使います。そのため、工程実行時に新規ChromeでGoogleログインを要求されません。
+2回目以降は `data/playwright-chrome-profile` に保存されたCookie/セッションが再利用されるため、通常は再ログイン不要です。Chromeが見つからない場合はGoogle Chrome本体をインストールしてください。
 
 | 工程 | プロジェクト名 |
 |---|---|
