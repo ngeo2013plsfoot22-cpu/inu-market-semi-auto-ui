@@ -36,22 +36,17 @@
     "step5": "イヌ式市場|note画像指示書",
     "step6": "イヌ式市場|X画像指示書"
   },
-  "appendOutputRulesToInput": false,
-  "favoriteCommands": [
-    "ランダム　実行",
-    "ランダムヨシ　実行",
-    "ランダム高配当　実行",
-    "ランダムテーマ株　実行",
-    "ランダムモメンタム　実行",
-    "ランダム半導体　実行",
-    "ランダムAI　実行",
-    "ランダム不動産　実行"
-  ],
   "step0ChatUrl": "",
   "step1ChatUrl": "",
   "step2ChatUrl": "",
   "step3ChatUrl": "",
   "step4ChatUrl": "",
   "step5ChatUrl": "",
-  "step6ChatUrl": ""
+  "step6ChatUrl": "",
+  "appendOutputRulesToInput": false,
+  "favoriteCommands": [
+    "ランダム　実行",
+    "ランダムヨシ　実行",
+    "ランダム高配当　実行"
+  ]
 }
