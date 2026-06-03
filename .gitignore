@@ -4,3 +4,7 @@ web/dist/
 *.log
 
 data/playwright-chrome-profile/
+# Local/private app data (manage in browser localStorage or JSON import/export)
+data/settings.json
+data/promptTemplates.json
+data/batches.json

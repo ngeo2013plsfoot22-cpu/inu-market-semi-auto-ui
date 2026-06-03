@@ -79,18 +79,36 @@ function normalizeSettings(settings: Partial<Settings> & Record<string, unknown>
 
 function normalizeTemplates(templates: Partial<Templates> = {}): Templates { return { ...defaultTemplates, ...templates }; }
 
+function makeDefaultLocalData(): LocalData {
+  return { batches: [], settings: clone(defaultSettings), templates: clone(defaultTemplates) };
+}
+
+function persistLocal(data: LocalData) {
+  localStorage.setItem(storageKey, JSON.stringify(data));
+}
+
 function loadLocal(): LocalData {
-  const raw = localStorage.getItem(storageKey) ?? localStorage.getItem(legacyStorageKey);
-  if (!raw) return { batches: [], settings: clone(defaultSettings), templates: clone(defaultTemplates) };
+  const currentRaw = localStorage.getItem(storageKey);
+  const legacyRaw = localStorage.getItem(legacyStorageKey);
+  const raw = currentRaw ?? legacyRaw;
+  if (!raw) {
+    const initial = makeDefaultLocalData();
+    persistLocal(initial);
+    return initial;
+  }
   try {
     const parsed = JSON.parse(raw);
-    return {
+    const data = {
       batches: Array.isArray(parsed.batches) ? parsed.batches : [],
       settings: normalizeSettings(parsed.settings ?? {}),
       templates: normalizeTemplates(parsed.templates ?? parsed.promptTemplates ?? {})
     };
+    if (!currentRaw) persistLocal(data);
+    return data;
   } catch {
-    return { batches: [], settings: clone(defaultSettings), templates: clone(defaultTemplates) };
+    const initial = makeDefaultLocalData();
+    persistLocal(initial);
+    return initial;
   }
 }
 

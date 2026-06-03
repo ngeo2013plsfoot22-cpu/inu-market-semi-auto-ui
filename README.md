@@ -51,6 +51,8 @@ npm run preview
 
 ## 保存と端末移行
 
+実データは、公開した静的Webアプリを開いた各ブラウザの localStorage（ブラウザ内保存）または、画面から読み込むJSONインポートで管理します。`data/settings.json`、`data/promptTemplates.json`、`data/batches.json` はチャットURL・プロンプト・銘柄作業履歴などのprivate情報を含む可能性があるため、GitHubへコミットしないでください。リポジトリには構造確認用の `data/*.example.json` だけを置きます。
+
 保存対象はすべてブラウザ内に保存されます。
 
 - `batches`
