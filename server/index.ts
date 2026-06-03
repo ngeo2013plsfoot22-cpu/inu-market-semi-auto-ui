@@ -48,8 +48,8 @@ function findStockOrThrow(batches: Batch[], stockId: string) {
   }
   throw new Error('銘柄が見つかりません。');
 }
-function projectUrl(settings: Awaited<ReturnType<typeof getSettings>>, step: StepKey) { return settings.projectUrlsByStep[step] || settings.defaultProjectUrl || ''; }
-function projectName(settings: Awaited<ReturnType<typeof getSettings>>, step: StepKey) { return settings.projectNamesByStep[step] || stepLabels[step]; }
+function projectUrl(settings: Awaited<ReturnType<typeof getSettings>>, step: StepKey) { return settings.chatUrlsByStep?.[step] || settings.projectUrlsByStep?.[step] || settings.defaultProjectUrl || ''; }
+function projectName(settings: Awaited<ReturnType<typeof getSettings>>, step: StepKey) { return settings.chatNamesByStep?.[step] || settings.projectNamesByStep?.[step] || stepLabels[step]; }
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, appName: 'イヌ式市場|半自動化UI', mode: 'manual copy-paste support', localIp: localIp() }));
 app.get('/api/batches', async (_req, res) => res.json((await getBatches()).map((b) => ({ ...b, stocks: b.stocks.map(normalizeStock), status: computeStatus({ ...b, stocks: b.stocks.map(normalizeStock) }) }))));
@@ -89,7 +89,7 @@ app.post('/api/build-copy-text', async (req, res) => {
     const templates = await getTemplates();
     let stock: StockItem | undefined;
     if (req.body.stockId) stock = normalizeStock(findStockOrThrow(await getBatches(), String(req.body.stockId)).stock);
-    const inputText = buildInputText(step, String(req.body.command ?? ''), stock);
+    const inputText = buildInputText(step, String(req.body.command ?? ''), stock, settings.appendOutputRulesToInput);
     const warning = step !== 'step0' && !inputText ? (step === 'step1' || step === 'step2' || step === 'step3' ? '3行判定コードがありません。先に工程0の判定を取り込んでください。' : 'note記事がありません。先に工程3を作成・保存してください。') : '';
     res.json({ initializationText: buildInitializationMessage(step, templates), inputText, projectUrl: projectUrl(settings, step), projectName: projectName(settings, step), warning });
   } catch (e) { res.status(400).json({ error: e instanceof Error ? e.message : String(e) }); }
@@ -130,7 +130,7 @@ app.get('/api/templates', async (_req, res) => res.json(await getTemplates()));
 app.post('/api/templates/save', async (req, res) => { await saveTemplates(req.body); res.json(await getTemplates()); });
 app.get('/api/settings', async (_req, res) => res.json(await getSettings()));
 app.post('/api/settings/save', async (req, res) => { await saveSettings(req.body); res.json(await getSettings()); });
-app.post('/api/export', async (req, res) => { const kind = req.body.kind ?? 'all'; const payload: any = {}; if (kind === 'all' || kind === 'batches') payload.batches = await getBatches(); if (kind === 'all' || kind === 'settings') payload.settings = await getSettings(); if (kind === 'all' || kind === 'templates') payload.templates = await getTemplates(); res.json(payload); });
+app.post('/api/export', async (req, res) => { const kind = req.body.kind ?? 'all'; const payload: any = {}; const settings = await getSettings(); if (kind === 'all' || kind === 'batches') payload.batches = await getBatches(); if (kind === 'all' || kind === 'settings') payload.settings = settings; if (kind === 'all' || kind === 'templates') payload.templates = await getTemplates(); if (kind === 'all' || kind === 'settings') { payload.favoriteCommands = settings.favoriteCommands; payload.chatUrlsByStep = settings.chatUrlsByStep; } res.json(payload); });
 app.post('/api/import', async (req, res) => { await importData(req.body); res.json({ ok: true }); });
 
 await initializeStorage();

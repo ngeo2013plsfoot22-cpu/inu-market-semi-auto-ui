@@ -40,12 +40,26 @@ export async function getBatches(): Promise<Batch[]> { return readJson<Batch[]>(
 export async function saveBatches(batches: Batch[]) { await writeJsonAtomic(files.batches, batches); }
 export async function getBatch(batchId: string) { return (await getBatches()).find((b) => b.batchId === batchId); }
 export async function upsertBatch(batch: Batch) { const batches = await getBatches(); const idx = batches.findIndex((b) => b.batchId === batch.batchId); if (idx >= 0) batches[idx] = batch; else batches.unshift(batch); await saveBatches(batches); }
+function stepChatField(step: string) { return `${step}ChatUrl`; }
 function normalizeSettings(settings: Partial<Settings> & Record<string, unknown>): Settings {
+  const rawChatUrls = { ...((settings.projectUrlsByStep as Record<string, string> | undefined) ?? {}), ...((settings.chatUrlsByStep as Record<string, string> | undefined) ?? {}) };
+  for (const step of ['step0','step1','step2','step3','step4','step5','step6']) {
+    const explicit = settings[stepChatField(step)];
+    if (typeof explicit === 'string') rawChatUrls[step] = explicit;
+  }
+  const chatUrlsByStep = { ...defaultSettings.chatUrlsByStep, ...rawChatUrls };
+  const chatNamesByStep = { ...defaultSettings.chatNamesByStep, ...(settings.projectNamesByStep ?? {}), ...(settings.chatNamesByStep ?? {}) };
   return {
     ...defaultSettings,
     ...settings,
-    projectUrlsByStep: { ...defaultSettings.projectUrlsByStep, ...(settings.projectUrlsByStep ?? {}) },
-    projectNamesByStep: { ...defaultSettings.projectNamesByStep, ...(settings.projectNamesByStep ?? {}) }
+    projectUrlsByStep: chatUrlsByStep,
+    projectNamesByStep: chatNamesByStep,
+    chatUrlsByStep,
+    chatNamesByStep,
+    step0ChatUrl: chatUrlsByStep.step0, step1ChatUrl: chatUrlsByStep.step1, step2ChatUrl: chatUrlsByStep.step2, step3ChatUrl: chatUrlsByStep.step3,
+    step4ChatUrl: chatUrlsByStep.step4, step5ChatUrl: chatUrlsByStep.step5, step6ChatUrl: chatUrlsByStep.step6,
+    appendOutputRulesToInput: Boolean(settings.appendOutputRulesToInput),
+    favoriteCommands: Array.isArray(settings.favoriteCommands) ? settings.favoriteCommands.map(String).filter(Boolean) : defaultSettings.favoriteCommands
   };
 }
 
@@ -53,4 +67,20 @@ export async function getSettings(): Promise<Settings> { return normalizeSetting
 export async function saveSettings(settings: Partial<Settings> & Record<string, unknown>) { await writeJsonAtomic(files.settings, normalizeSettings(settings)); }
 export async function getTemplates(): Promise<PromptTemplates> { return { ...defaultPrompts, ...(await readJson<PromptTemplates>(files.templates, defaultPrompts)) }; }
 export async function saveTemplates(templates: PromptTemplates) { await writeJsonAtomic(files.templates, templates); await writePromptFiles(templates, true); }
-export async function importData(payload: { batches?: Batch[]; settings?: Settings; templates?: PromptTemplates }) { if (payload.batches) await saveBatches(payload.batches); if (payload.settings) await saveSettings(payload.settings as Partial<Settings> & Record<string, unknown>); if (payload.templates) await saveTemplates(payload.templates); }
+export async function importData(payload: { batches?: Batch[]; settings?: Settings; templates?: PromptTemplates; promptTemplates?: PromptTemplates; favoriteCommands?: string[]; importMode?: 'append'|'overwrite' }) {
+  if (payload.batches) {
+    if (payload.importMode === 'append') {
+      const current = await getBatches();
+      const byId = new Map(current.map((batch) => [batch.batchId, batch]));
+      for (const batch of payload.batches) byId.set(batch.batchId, batch);
+      await saveBatches([...byId.values()]);
+    } else {
+      await saveBatches(payload.batches);
+    }
+  }
+  const incomingSettings = payload.settings ? { ...(payload.settings as Partial<Settings> & Record<string, unknown>) } : {};
+  if (payload.favoriteCommands) incomingSettings.favoriteCommands = payload.favoriteCommands;
+  if (payload.settings || payload.favoriteCommands) await saveSettings(incomingSettings);
+  if (payload.templates) await saveTemplates(payload.templates);
+  if (payload.promptTemplates) await saveTemplates(payload.promptTemplates);
+}
