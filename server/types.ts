@@ -16,6 +16,11 @@ export type Settings = {
   defaultProjectUrl: string;
   projectUrlsByStep: Record<StepKey, string>;
   projectNamesByStep: Record<StepKey, string>;
+  chatUrlsByStep: Record<StepKey, string>;
+  chatNamesByStep: Record<StepKey, string>;
+  step0ChatUrl: string; step1ChatUrl: string; step2ChatUrl: string; step3ChatUrl: string; step4ChatUrl: string; step5ChatUrl: string; step6ChatUrl: string;
+  appendOutputRulesToInput: boolean;
+  favoriteCommands: string[];
 };
 export type PromptTemplates = {
   step0_buyJudgmentPrompt: string; step1_xArticlePrompt: string; step2_overseasXPostPrompt: string; step3_noteArticlePrompt: string;
@@ -24,8 +29,12 @@ export type PromptTemplates = {
 export type ExportKind = 'batches'|'settings'|'templates'|'all';
 export const stepKeys: StepKey[] = ['step0','step1','step2','step3','step4','step5','step6'];
 export const stepLabels: Record<StepKey, string> = {
-  step0: '工程0：買い目判定', step1: '工程1：X記事作成', step2: '工程2：海外向けXポスト作成', step3: '工程3：note記事作成',
-  step4: '工程4：日本語Xポスト作成', step5: '工程5：note画像指示作成', step6: '工程6：X画像指示作成'
+  step0: '工程0：買い目判定', step1: '工程1：X記事作成', step2: '工程2：英語Xポスト作成', step3: '工程3：note記事作成',
+  step4: '工程4：日本語Xポスト作成', step5: '工程5：note画像指示書', step6: '工程6：X画像指示書'
+};
+export const chatLabels: Record<StepKey, string> = {
+  step0: '工程0：買い目判定チャット', step1: '工程1：X記事作成チャット', step2: '工程2：英語Xポスト作成チャット', step3: '工程3：note記事作成チャット',
+  step4: '工程4：日本語Xポスト作成チャット', step5: '工程5：note画像指示書チャット', step6: '工程6：X画像指示書チャット'
 };
 export const templateKeyByStep: Record<StepKey, keyof PromptTemplates> = {
   step0: 'step0_buyJudgmentPrompt', step1: 'step1_xArticlePrompt', step2: 'step2_overseasXPostPrompt', step3: 'step3_noteArticlePrompt',

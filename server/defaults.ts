@@ -1,12 +1,23 @@
 import type { PromptTemplates, Settings } from './types.js';
 
+const defaultChatNames = {
+  step0: 'イヌ式市場|買い目判定', step1: 'イヌ式市場|X記事作成', step2: 'イヌ式市場|X英語ポスト作成', step3: 'イヌ式市場|note記事作成',
+  step4: 'イヌ式市場|X日本語ポスト作成', step5: 'イヌ式市場|note画像指示書', step6: 'イヌ式市場|X画像指示書'
+};
+
+const emptyStepUrls = { step0: '', step1: '', step2: '', step3: '', step4: '', step5: '', step6: '' };
+
+export const defaultFavoriteCommands = ['ランダム　実行','ランダムヨシ　実行','ランダム高配当　実行','ランダムテーマ株　実行','ランダムモメンタム　実行','ランダム半導体　実行','ランダムAI　実行','ランダム不動産　実行'];
+
 export const defaultSettings: Settings = {
   defaultProjectUrl: '',
-  projectUrlsByStep: { step0: '', step1: '', step2: '', step3: '', step4: '', step5: '', step6: '' },
-  projectNamesByStep: {
-    step0: 'イヌ式市場|買い目判定', step1: 'イヌ式市場|X記事作成', step2: 'イヌ式市場|X英語ポスト作成', step3: 'イヌ式市場|note記事作成',
-    step4: 'イヌ式市場|X日本語ポスト作成', step5: 'イヌ式市場|note画像指示書', step6: 'イヌ式市場|X画像指示書'
-  }
+  projectUrlsByStep: emptyStepUrls,
+  projectNamesByStep: defaultChatNames,
+  chatUrlsByStep: emptyStepUrls,
+  chatNamesByStep: defaultChatNames,
+  step0ChatUrl: '', step1ChatUrl: '', step2ChatUrl: '', step3ChatUrl: '', step4ChatUrl: '', step5ChatUrl: '', step6ChatUrl: '',
+  appendOutputRulesToInput: false,
+  favoriteCommands: defaultFavoriteCommands
 };
 
 export const defaultPrompts: PromptTemplates = {
