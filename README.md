@@ -36,18 +36,23 @@ npm run preview
 
 ## GitHub Pagesで公開する手順
 
-このリポジトリ名は `inu-market-semi-auto-ui` なので、Viteの `base` は `/inu-market-semi-auto-ui/` に設定しています。
+このリポジトリ名は `inu-market-semi-auto-ui` なので、Viteの `base` は `/inu-market-semi-auto-ui/` に設定しています。公開URLは以下です。
 
-1. 依存関係をインストールします。
-   ```bash
-   npm install
-   ```
-2. 静的ファイルをビルドします。
-   ```bash
-   npm run build
-   ```
-3. GitHub Pagesで `dist/` の内容を公開します。例：GitHub Actionsで `npm ci` と `npm run build` を実行し、生成された `dist/` をPages artifactとしてデプロイします。
-4. 公開URLをスマホやPCのブラウザで開きます。PCのターミナルや開発サーバーは不要です。
+```text
+https://ngeo2013plsfoot22-cpu.github.io/inu-market-semi-auto-ui/
+```
+
+GitHub Pagesの公開元は **GitHub Actions** を使います。`main` ブランチへpushすると、`.github/workflows/deploy.yml` が自動で以下を実行します。
+
+1. Node.js 20をセットアップします。
+2. `npm ci` で依存関係をインストールします。
+3. `npm run build` で静的ファイルをビルドします。
+4. 生成された `dist/` をGitHub Pages artifactとしてアップロードします。
+5. GitHub Pagesへデプロイします。
+
+初回だけGitHubリポジトリの **Settings > Pages > Build and deployment > Source** を **GitHub Actions** に設定してください。その後は `main` ブランチへのpush、またはActions画面からの手動実行（`workflow_dispatch`）で公開できます。
+
+公開後はPCで `npm run dev` を起動しなくても、スマホやPCのブラウザで上記URLを開くだけでUIを使えます。
 
 ## 保存と端末移行
 
