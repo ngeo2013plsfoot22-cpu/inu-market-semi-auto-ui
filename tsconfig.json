@@ -12,7 +12,6 @@
     "noImplicitAny": false
   },
   "include": [
-    "server",
     "web/src",
     "web/vite.config.ts"
   ]
